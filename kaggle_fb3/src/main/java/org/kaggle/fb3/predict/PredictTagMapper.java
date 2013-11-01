@@ -1,21 +1,18 @@
 package org.kaggle.fb3.predict;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -27,10 +24,9 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 	final String SPLIT_STRING = "\",\"";
 
 	private Text outputkey = new Text();
-	// private Text outputValue = new Text();
 	private MapWritable outputValue = new MapWritable();
 
-	private Map<String, Map<String, Double>> wordFrequencyInTag = new HashMap<String, Map<String, Double>>();
+	private Map<String, Map<String, Float>> wordFrequencyInTag = new HashMap<String, Map<String, Float>>();
 	private Map<String, Integer> wordInTagsMap = new HashMap<String, Integer>();
 
 	private int progressCoounter = 0;
@@ -47,9 +43,11 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 		System.out.println("Reading the files into cache");
 
 		Configuration conf = context.getConfiguration();
-		FileSystem fs = FileSystem.get(files[0], conf);
+		
+		FileSystem fs = null;
 
 		InputStream in = null;
+		InputStreamReader reader = null;
 		try {
 
 			System.out.println("Reading all the lines from the file parts 0-9");
@@ -60,42 +58,40 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 								+ i);
 				System.out.println("file path --" + files[i]);
 
-				context.getCounter(BUFFER_READER_GROUP, BUFFER_FILE_COUNTER)
-						.increment(1);
-				/*
-				 * in = fs.open(new Path(files[i])); List<String> lines =
-				 * IOUtils.readLines(in);
-				 */
-
+				//incrementing the file counter
+				context.getCounter(BUFFER_READER_GROUP, BUFFER_FILE_COUNTER).increment(1);
+				
+				 
 				String[] ws = null;
-				Map<String, Double> tagMap = null;
-				BufferedReader reader = null;
+				Map<String, Float> tagMap = null;
+				BufferedReader buffReader = null;
 				try {
-					reader = new BufferedReader(new FileReader(
-							new File(files[0])));
-
+					fs = FileSystem.get(files[i], conf);
+					in = fs.open(new Path(files[i]));					
+					reader = new InputStreamReader(in);
+					buffReader = new BufferedReader(reader);
 					String line = null;
 					System.out.println("reading the cache file");
-					while ((line = reader.readLine()) != null) {
+					while ((line = buffReader.readLine()) != null) {
 
-						context.getCounter(BUFFER_READER_GROUP,
-								BUFFER_READER_COUNTER).increment(1);
+						//incrementing the line counter
+						context.getCounter(BUFFER_READER_GROUP, BUFFER_READER_COUNTER).increment(1);
 
 						ws = line.split("\\t");
 
 						tagMap = wordFrequencyInTag.get(ws[0]);
 						if (null == tagMap) {
-							tagMap = new HashMap<String, Double>();
+							tagMap = new HashMap<String, Float>();
 						}
 						tagMap.put(ws[1],
-								Double.valueOf(ws[2]) / Double.valueOf(ws[3]));
+								Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
 
-						wordFrequencyInTag.put(ws[1], tagMap);
+						wordFrequencyInTag.put(ws[0], tagMap);
 
 						// reporting the progress
 						progressCoounter++;
 
-						if (progressCoounter % 1000 == 0) {
+						if (progressCoounter % 100000 == 0) {
 							context.progress();
 							System.out.println("Progressing ....");
 						}
@@ -106,28 +102,64 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 					
 					throw new IOException(e);
 				}finally{
-					reader.close();
-				}
-
-				in = fs.open(new Path(files[3]));
-				List<String> lines = IOUtils.readLines(in);
-				String[] w = null;
-				System.out.println("Reading all the lines from the file2");
-				progressCoounter = 0;
-				for (String line : lines) {
-					context.getCounter(BUFFER_READER_GROUP,
-							BUFFER_READER_COUNTER).increment(1);
-					w = line.split("\\t");
-					wordInTagsMap.put(w[0], Integer.valueOf(w[1]));
-
-					// reporting the progress
-					progressCoounter++;
-
-					if (progressCoounter % 1000 == 0) {
-						context.progress();
+					if(in != null){
+						in.close();
+					}
+					if(null != reader){						
+						reader.close();
+					}
+					if(null != buffReader){						
+						buffReader.close();
+					}
+					if(fs != null){						
+						fs.close();
 					}
 				}
 			}
+				
+			BufferedReader buffReader = null;
+				try {
+					fs = FileSystem.get(files[files.length-1], conf);
+					in = fs.open(new Path(files[3]));					
+					reader = new InputStreamReader(in);
+					buffReader = new BufferedReader(reader);
+					
+
+				String[] w = null;
+				System.out.println("Reading all the lines from the file2");
+				progressCoounter = 0;
+				String line = null;
+				while ((line = buffReader.readLine()) != null) {
+					context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
+					
+					w = line.split("\\t");
+					wordInTagsMap.put(w[0], Integer.valueOf(w[1]));					
+					progressCoounter++;
+
+					if (progressCoounter % 100000 == 0) {
+						context.progress(); // reporting the progress
+						System.out.println("Progressing ....");
+					}
+				}
+				}catch(Exception e){
+					System.out.println(e.getStackTrace());
+					throw new IOException(e);
+					
+				}finally{
+					if(in != null){
+						in.close();
+					}
+					if(reader  != null){
+						reader.close();
+					}
+					if(null != buffReader){
+						buffReader.close();
+					}
+					if(fs != null){
+						fs.close();
+					}
+					System.out.println("PROCESSED ALL THE CHACHED FILES");
+				}
 		} catch (Exception e) {
 			throw new IOException(e);
 		}
@@ -160,31 +192,31 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 			outputkey.set(lineId);
 			// outputValue.set(title);
 
-			Map<String, Double> tagFrequency = null;
+			Map<String, Float> tagFrequency = null;
 			int tagsForWord = 0;
 			for (String word : title.split("\\s")) {
 				tagFrequency = wordFrequencyInTag.get(word);
 				tagsForWord = wordInTagsMap.get(word);
 
-				double tfIdf = 0.0;
+				Float tfIdf = 0.0f;
 				if (null != tagFrequency) {
 					String tag = null;
-					double wordFreqInTag = 0.0;
-					double localWt = 1.0;
+					Float wordFreqInTag = 0.0f;
+					Float localWt = 1.0f;
 
-					for (Map.Entry<String, Double> entry : tagFrequency
+					for (Map.Entry<String, Float> entry : tagFrequency
 							.entrySet()) {
 						tag = entry.getKey();
 						wordFreqInTag = entry.getValue();
 						if (tag.equalsIgnoreCase(word)) {
-							localWt = 3.0;
+							localWt = 3.0f;
 						}
 						// calculate for tf-idf
 						tfIdf = wordFreqInTag
-								* Math.log(10000000 / (tagsForWord + 1))
+								* (float)Math.log(new Double(10000000 / (tagsForWord + 1)))
 								* localWt;
 						outputValue.put(new Text(tag),
-								new DoubleWritable(tfIdf));
+								new FloatWritable(tfIdf));
 						context.write(outputkey, outputValue);
 					}
 				}

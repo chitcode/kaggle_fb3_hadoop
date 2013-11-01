@@ -1,12 +1,8 @@
 package org.kaggle.fb3.predict;
 
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
@@ -33,10 +29,7 @@ public class PredictTagTest {
 		//setting configuration
 		Configuration conf = new Configuration();
 		conf.setStrings("files","kaggle_facebook3_train2/part-r-00000","kaggle_facebook3_train2/part-r-00001","kaggle_facebook3_train2/part-r-00002","kaggle_fb_train3.txt");
-		Path[] paths = DistributedCache.getLocalCacheFiles(conf);
-		/*for(Path path: paths){
-			System.out.println(path.toString());
-		}*/
+		
 		
 	}
 
