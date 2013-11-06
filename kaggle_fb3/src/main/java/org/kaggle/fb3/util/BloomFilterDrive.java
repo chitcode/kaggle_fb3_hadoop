@@ -31,6 +31,7 @@ public class BloomFilterDrive {
 		//calculate the vector size and optimal k value based on approximattions
 		int vectorSize = getOptimalBloomFilterSize(numMembers,falsePositiveRate);
 		int nbHash = getOptimalK(numMembers,vectorSize);
+		System.out.println("nbHash size " +nbHash);
 		
 		BloomFilter filter = new BloomFilter(vectorSize,nbHash,Hash.MURMUR_HASH);
 		
@@ -79,13 +80,17 @@ public class BloomFilterDrive {
 		
 		System.exit(0);
 	}
-
-	private static int getOptimalK(int numMembers, int vectorSize) {
-		return (int)Math.round((numMembers/vectorSize)/Math.log(2));
-	}
-
+	
 	private static int getOptimalBloomFilterSize(int numMembers, float falsePositiveRate) {
 		int size = (int)(- numMembers * (float)Math.log(falsePositiveRate)/Math.pow(Math.log(2),2));
 		return size;
 	}
+
+	private static int getOptimalK(int numMembers, int vectorSize) {
+		System.out.println("numMembers ---  "+ numMembers);
+		System.out.println("vectorSize ---  "+ vectorSize);
+		return (int)Math.round(numMembers/vectorSize * Math.log(2));
+	}
+
+	
 }
