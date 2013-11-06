@@ -4,6 +4,14 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapreduce.Reducer;
 
+
+/**
+ * 
+ * @author Chit
+ * <Mapper-Input> [ word,tag - wordCount, totalWordsinTag]
+ * <Reducer-Input> [ word,tag - wordCount, totalWordsinTag] # wordCount accumulated
+ *
+ */
 public class WordFrequnceInDocReducer extends Reducer<WordTagWritable, WdCntWdsInDocCntWritable, WordTagWritable, WdCntWdsInDocCntWritable>{
 	
 	WdCntWdsInDocCntWritable wdCntWdsInDocCntWritable = new WdCntWdsInDocCntWritable();
@@ -19,5 +27,4 @@ public class WordFrequnceInDocReducer extends Reducer<WordTagWritable, WdCntWdsI
 		wdCntWdsInDocCntWritable.set(count,totalWordsInTag);
 		context.write(key, wdCntWdsInDocCntWritable);	
 	}
-
 }

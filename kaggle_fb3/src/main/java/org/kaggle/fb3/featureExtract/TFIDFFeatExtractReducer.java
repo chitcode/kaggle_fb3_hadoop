@@ -5,6 +5,13 @@ import java.io.IOException;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+/**
+ * 
+ * @author Chit
+ * <Reducer-in> [tag - title]    # title is cleaned and bi-grammed
+ * <Reducer-out> [tag - title] # all the titles combined
+ *
+ */
 public class TFIDFFeatExtractReducer extends Reducer<Text, Text, Text, Text>{	
 	
 	Text outputValue = new Text();

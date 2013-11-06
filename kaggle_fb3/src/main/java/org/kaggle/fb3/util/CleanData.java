@@ -1,5 +1,7 @@
 package org.kaggle.fb3.util;
 
+import java.text.Normalizer;
+
 public class CleanData {
 	
 	
@@ -10,8 +12,14 @@ public class CleanData {
 	(,)]
 	
 	**/	
-	public static String clean(String inString){	
+	public static String clean(String inString){
 		
+		//normalizing the input String
+		inString = Normalizer.normalize(inString, Normalizer.Form.NFD);
+		inString = inString.replaceAll("[^\\p{ASCII}]", "");
+		
+		//lowering the case
+		inString = inString.toLowerCase();
 		
 		inString = inString.replaceAll("\\,\\s", " "); //,
 		inString = inString.replaceAll("\\,", " "); //,
@@ -64,8 +72,13 @@ public class CleanData {
 		inString = inString.replaceAll("\\(", ""); // (
 		inString = inString.replaceAll("\\)", ""); // )
 		inString = inString.replaceAll("\\?", ""); // ?
-		inString = inString.replaceAll("\\'t", "not"); // 't
+		inString = inString.replaceAll("\\'t", " not"); // 't
+		inString = inString.replaceAll("\\!", "");
+		inString = inString.replaceAll("\"", " ");
+		inString = inString.replaceAll("\\-+", "-"); //replacing all --- to -
 		inString = inString.replaceAll("\\s\\.\\s|\\.$", " "); //.
+		
+		
 		
 		
 		inString = inString.replace("\\s+", " "); //removing all the cumulative spaces

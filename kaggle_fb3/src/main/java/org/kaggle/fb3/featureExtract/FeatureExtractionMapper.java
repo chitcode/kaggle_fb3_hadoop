@@ -6,6 +6,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+@Deprecated
 public class FeatureExtractionMapper extends Mapper<LongWritable, Text, LongWritable, Text>{
 	
 	String splitString = "\",\"";

@@ -7,8 +7,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -28,9 +31,12 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 
 	private Text outputkey = new Text();
 	private MapWritable outputValue = new MapWritable();
-
+	
+	
+	//wordFrequencyInTag format <word,<tag,tf>>
 	private Map<String, Map<String, Float>> wordFrequencyInTag = new HashMap<String, Map<String, Float>>();
 	private Map<String, Integer> wordInTagsMap = new HashMap<String, Integer>();
+	private Set<String> tags = new HashSet<String>();
 
 	private int progressCoounter = 0;
 
@@ -39,6 +45,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 	public static final String BUFFER_READER_COUNTER = "BUFFER_READER_COUNTER";
 	
 	private BloomFilter filter = new BloomFilter();
+	private int tagsSize = 0;
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -111,8 +118,10 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 							if (null == tagMap) {
 								tagMap = new HashMap<String, Float>();
 							}
-							tagMap.put(ws[1],
-									Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
+							if(Integer.valueOf(ws[2]) > 2){ //storing words if contains more than 2 times
+								tags.add(ws[1]);
+								tagMap.put(ws[1],Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
+							}							
 
 							wordFrequencyInTag.put(ws[0], tagMap);							
 						}						
@@ -143,6 +152,8 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 						fs.close();
 					}
 				}
+				
+				
 			}
 				
 			BufferedReader buffReader = null;
@@ -161,8 +172,8 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 					context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
 					
 					w = line.split("\\t");
-					if(filter.membershipTest(new Key(w[0].getBytes()))){
-						wordInTagsMap.put(w[0], Integer.valueOf(w[1]));	
+					if(filter.membershipTest(new Key(w[0].getBytes())) && null != w[1] && NumberUtils.isNumber(w[1].trim())){
+						wordInTagsMap.put(w[0], Integer.valueOf(w[1].trim()));	
 					}
 									
 					progressCoounter++;
@@ -194,6 +205,9 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 		} catch (Exception e) {
 			throw new IOException(e);
 		}
+		
+		tagsSize = tags.size();
+		tags = null;
 	}
 
 	@Override
@@ -204,6 +218,9 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 
 		String[] columns = testLine.split(SPLIT_STRING);
 		int splitSize = columns.length;
+		
+		//total number of unique tags	
+		
 
 		String lineId = columns[0];
 		lineId = lineId.replaceAll("^NEW_LINE_CHHAR\"", "").trim();
@@ -233,7 +250,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 				if (null != tagFrequency) {
 					String tag = null;
 					Float wordFreqInTag = 0.0f;
-					Float localWt = 1.0f;
+					Float localWt = 1.0f; //TODO : planning for better local weight
 
 					for (Map.Entry<String, Float> entry : tagFrequency
 							.entrySet()) {
@@ -242,9 +259,11 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 						if (tag.equalsIgnoreCase(word)) {
 							localWt = 3.0f;
 						}
-						// calculate for tf-idf
+						
+						// calculate for tf-idf					
+						
 						tfIdf = wordFreqInTag
-								* (float)Math.log(new Double(10000000 / (tagsForWord + 1)))
+								* (float)Math.log(new Double(tagsSize / (tagsForWord + 1)))
 								* localWt;
 						outputValue.put(new Text(tag),
 								new FloatWritable(tfIdf));

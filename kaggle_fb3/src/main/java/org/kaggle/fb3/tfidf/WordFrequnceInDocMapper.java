@@ -6,6 +6,13 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+/**
+ * 
+ * @author Chit
+ * <Mapper-input> [tag - titles]
+ * <Mapper-output> [ word,tag - wordCount, totalWordsinTag]
+ *
+ */
 public class WordFrequnceInDocMapper extends Mapper<Object,Text,WordTagWritable,WdCntWdsInDocCntWritable>{	
 	
 	
