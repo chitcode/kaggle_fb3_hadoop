@@ -89,7 +89,7 @@ public class BloomFilterDrive {
 	private static int getOptimalK(int numMembers, int vectorSize) {
 		System.out.println("numMembers ---  "+ numMembers);
 		System.out.println("vectorSize ---  "+ vectorSize);
-		return (int)Math.round(numMembers/vectorSize * Math.log(2));
+		return (int)Math.round(vectorSize/numMembers * Math.log(2));
 	}
 
 	

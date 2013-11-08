@@ -30,18 +30,27 @@ public class PredictTagTest {
 
 	@Test
 	public void testMapper() throws IOException{
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/bloom_filter");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_facebook3_train2/part-r-00000");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_facebook3_train2/part-r-00001");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_facebook3_train3.txt");
-		String line = "Mocking the context object in MR unit";
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_trainwords_bloom_filter");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00000-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00001-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00002-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00003-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00004-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00005-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00006-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00007-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00008-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00009-sample");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train3-sample.txt");
+		
+		String line = "NEW_LINE_CHHAR\"6034196\",\"Nodes inside Cisco VPN. Incoming SSH requests allowed. But can't initiate an outbound SSH application apple\",\"<p>How do I disable site-specific hotkeys\"";
 		mapDriver.withInput(new LongWritable(0),new Text(line));
 		
-		Text outkey = new Text("0");
+		Text outkey = new Text("12345");
 		
 		
 		MapWritable outputValue = new MapWritable();
-		outputValue.put(new Text("hadoop"), new DoubleWritable(0.003));
+		outputValue.put(new Text(".a"), new DoubleWritable(0.003));
 		mapDriver.withOutput(outkey,outputValue);
 		mapDriver.runTest();
 	}

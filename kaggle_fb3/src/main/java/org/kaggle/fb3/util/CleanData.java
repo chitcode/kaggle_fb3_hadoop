@@ -67,22 +67,27 @@ public class CleanData {
 		inString = inString.replaceAll("^this\\s|\\sthis\\s|\\sthis$", " "); //this
 		inString = inString.replaceAll("^when\\s|\\swhen\\s|\\swhen$", " "); //when
 		inString = inString.replaceAll("^with\\s|\\swith\\s|\\swith$", " "); //with
-		inString = inString.replaceAll("\\'s\\s", ""); // 's
-		inString = inString.replaceAll("\\'", ""); // '
+		inString = inString.replaceAll("\\'s\\s", ""); // 's		
 		inString = inString.replaceAll("\\(", ""); // (
 		inString = inString.replaceAll("\\)", ""); // )
 		inString = inString.replaceAll("\\?", ""); // ?
-		inString = inString.replaceAll("\\'t", " not"); // 't
-		inString = inString.replaceAll("\\!", "");
+		inString = inString.replaceAll("n\\'t", " not"); // 't
+		//inString = inString.replaceAll("\\!", "");
 		inString = inString.replaceAll("\"", " ");
-		inString = inString.replaceAll("\\-+", "-"); //replacing all --- to -
+		inString = inString.replaceAll("\\'", ""); // 
+		inString = inString.replaceAll("\\.+", "."); // .'
+		inString = inString.replaceAll("^\\s\\.^\\s", " dothere ");
+		inString = inString.replaceAll("[0-9]+", " numberhere ");
+		
+		inString = inString.replaceAll("[\\!\\-\\+\\{\\}\\[\\]\\$\\#\\<\\>\\:\\_\\*\\=\\/\\\\]+", " spcharhere "); //replacing all special characters to " "
 		inString = inString.replaceAll("\\s\\.\\s|\\.$", " "); //.
 		
 		
 		
 		
 		inString = inString.replace("\\s+", " "); //removing all the cumulative spaces
-		
+		//inString = inString.replace("{spcharhere\\s}+", "spcharhere ");
+		//inString = inString.replace("{numberhere\\s}+ ", "numberhere ");
 		return inString;
 	}
 

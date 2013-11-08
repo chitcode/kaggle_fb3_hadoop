@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
@@ -46,12 +45,21 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 	
 	private BloomFilter filter = new BloomFilter();
 	private int tagsSize = 0;
+	
+	//private boolean loggingEnable = true;
 
 	@Override
 	protected void setup(Context context) throws IOException,
 			InterruptedException {
 		URI[] files = DistributedCache.getCacheFiles(context.getConfiguration());
 		System.out.println("Reading the files into cache");
+		
+		
+		System.out.println("The files from cache are :");
+		for(URI file:files){
+			System.out.println(file.getPath());
+		}
+		
 
 		Configuration conf = context.getConfiguration();
 		
@@ -89,7 +97,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 
 			System.out.println("Reading all the lines from the file parts 0-9");
 
-			for (int i = 1; i < files.length-2; i++) {
+			for (int i = 1; i <= 10; i++) {
 				System.out.println("Reading all the lines from the file part ---  "	+ i);
 				System.out.println("file path --" + files[i]);
 
@@ -120,10 +128,10 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 							}
 							if(Integer.valueOf(ws[2]) > 2){ //storing words if contains more than 2 times
 								tags.add(ws[1]);
-								tagMap.put(ws[1],Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
+								tagMap.put(ws[0],Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
 							}							
 
-							wordFrequencyInTag.put(ws[0], tagMap);							
+							wordFrequencyInTag.put(ws[1], tagMap);							
 						}						
 
 						// reporting the progress
@@ -158,24 +166,30 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 				
 			BufferedReader buffReader = null;
 				try {
-					fs = FileSystem.get(files[files.length-1], conf);
-					in = fs.open(new Path(files[3]));					
+					fs = FileSystem.get(files[11], conf);
+					in = fs.open(new Path(files[11]));					
 					reader = new InputStreamReader(in);
 					buffReader = new BufferedReader(reader);
 					
 
-				String[] w = null;
-				System.out.println("Reading all the lines from the file2");
+				String[] w = null;				
+				System.out.println("Reading all the lines from the file2 from "+ files[11]);
 				progressCoounter = 0;
 				String line = null;
 				while ((line = buffReader.readLine()) != null) {
 					context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
 					
 					w = line.split("\\t");
-					if(filter.membershipTest(new Key(w[0].getBytes())) && null != w[1] && NumberUtils.isNumber(w[1].trim())){
-						wordInTagsMap.put(w[0], Integer.valueOf(w[1].trim()));	
+					
+					if(filter.membershipTest(new Key(w[0].trim().getBytes()))){
+						//System.out.print(w[0]+"  ----   "+w[1]);
+						try{
+							wordInTagsMap.put(w[0], Integer.valueOf((w[1].trim())));
+						}catch(Exception e){
+							System.out.println("Error encounter for key with value in try:" + w[0] +"  -  "+ w[1]);							
+						}
 					}
-									
+							
 					progressCoounter++;
 
 					if (progressCoounter % 100000 == 0) {
@@ -217,11 +231,8 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 		String testLine = value.toString();
 
 		String[] columns = testLine.split(SPLIT_STRING);
-		int splitSize = columns.length;
+		int splitSize = columns.length;		
 		
-		//total number of unique tags	
-		
-
 		String lineId = columns[0];
 		lineId = lineId.replaceAll("^NEW_LINE_CHHAR\"", "").trim();
 
@@ -242,9 +253,13 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 
 			Map<String, Float> tagFrequency = null;
 			int tagsForWord = 0;
-			for (String word : title.split("\\s")) {
+			String[] words = title.split("\\s");
+			for (String word : words) {
 				tagFrequency = wordFrequencyInTag.get(word);
-				tagsForWord = wordInTagsMap.get(word);
+				//System.out.println("wordInTagsMap size "+ wordInTagsMap.size());
+				Integer tagsCount = wordInTagsMap.get(word);
+				if(tagsCount != null)
+					tagsForWord = tagsCount;
 
 				Float tfIdf = 0.0f;
 				if (null != tagFrequency) {
@@ -267,6 +282,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 								* localWt;
 						outputValue.put(new Text(tag),
 								new FloatWritable(tfIdf));
+						//System.out.println("Map Output : "+ outputkey+ "  -   "+ outputValue);
 						context.write(outputkey, outputValue);
 					}
 				}
