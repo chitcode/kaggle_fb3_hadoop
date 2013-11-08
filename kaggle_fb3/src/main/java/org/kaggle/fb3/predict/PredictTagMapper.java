@@ -267,8 +267,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 					Float wordFreqInTag = 0.0f;
 					Float localWt = 1.0f; //TODO : planning for better local weight
 
-					for (Map.Entry<String, Float> entry : tagFrequency
-							.entrySet()) {
+					for (Map.Entry<String, Float> entry : tagFrequency.entrySet()) {
 						tag = entry.getKey();
 						wordFreqInTag = entry.getValue();
 						if (tag.equalsIgnoreCase(word)) {
