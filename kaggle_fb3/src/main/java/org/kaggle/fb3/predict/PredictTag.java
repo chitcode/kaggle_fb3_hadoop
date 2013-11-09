@@ -32,12 +32,12 @@ public class PredictTag extends Configured implements Tool{
 		
 		tagPredict.setJobName("Prediction for tags");
 		tagPredict.setJarByClass(getClass());
-		tagPredict.setNumReduceTasks(6);
+		tagPredict.setNumReduceTasks(0);
 		
 		//setting mapper, combiner, reducer
 		tagPredict.setMapperClass(PredictTagMapper.class);
 		//tagPredict.setCombinerClass(PredictTagReducer.class);
-		tagPredict.setReducerClass(PredictTagReducer.class);
+		//tagPredict.setReducerClass(PredictTagReducer.class);
 		
 		tagPredict.setMapOutputKeyClass(Text.class);
 		tagPredict.setMapOutputValueClass(MapWritable.class);

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,14 +23,16 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.bloom.BloomFilter;
 import org.apache.hadoop.util.bloom.Key;
 import org.kaggle.fb3.util.CleanData;
+import org.kaggle.fb3.util.CollectionsExtn;
 import org.kaggle.fb3.util.Ngram;
 
-public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
+public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 
 	final String SPLIT_STRING = "\",\"";
 
 	private Text outputkey = new Text();
-	private MapWritable outputValue = new MapWritable();
+	//private MapWritable outputValue = new MapWritable();
+	private Text outputValue = new Text();
 	
 	
 	//wordFrequencyInTag format <word,<tag,tf>>
@@ -89,7 +92,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 			}
 			
 			if(fs != null){						
-				fs.close();
+				//fs.close();
 			}
 		}
 		
@@ -157,7 +160,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 						buffReader.close();
 					}
 					if(fs != null){						
-						fs.close();
+						//fs.close();
 					}
 				}
 				
@@ -212,7 +215,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 						buffReader.close();
 					}
 					if(fs != null){
-						fs.close();
+						//fs.close();
 					}
 					System.out.println("PROCESSED ALL THE CHACHED FILES");
 				}
@@ -254,6 +257,10 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 			Map<String, Float> tagFrequency = null;
 			int tagsForWord = 0;
 			String[] words = title.split("\\s");
+			
+			//create a local map to hold all the tags and scores and radiate the top 3 scores from this map
+			Map<String,Float> tagScoreMap = new HashMap<String,Float>();
+			
 			for (String word : words) {
 				tagFrequency = wordFrequencyInTag.get(word);
 				//System.out.println("wordInTagsMap size "+ wordInTagsMap.size());
@@ -279,13 +286,21 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 						tfIdf = wordFreqInTag
 								* (float)Math.log(new Double(tagsSize / (tagsForWord + 1)))
 								* localWt;
-						outputValue.put(new Text(tag),
-								new FloatWritable(tfIdf));
-						//System.out.println("Map Output : "+ outputkey+ "  -   "+ outputValue);
-						context.write(outputkey, outputValue);
+						
+						if(tagScoreMap.containsKey(tag)){
+							tagScoreMap.put(tag, tagScoreMap.get(tag)+tfIdf);
+						}else{
+							tagScoreMap.put(tag,tfIdf);
+						}
+						
+						//outputValue.put(new Text(tag),new FloatWritable(tfIdf));						
+						
 					}
 				}
 			}
+			
+			outputValue.set(CollectionsExtn.getSortedTags(tagScoreMap, 3));
+			context.write(outputkey, outputValue);
 
 			/**
 			 * reading from database try { outputValue.set(new
@@ -295,7 +310,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, MapWritable> {
 			 * throw new IOException(e); }
 			 **/
 
-		}
+		}	
 	}
 
 }
