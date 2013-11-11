@@ -18,6 +18,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.MapWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.bloom.BloomFilter;
@@ -26,11 +27,11 @@ import org.kaggle.fb3.util.CleanData;
 import org.kaggle.fb3.util.CollectionsExtn;
 import org.kaggle.fb3.util.Ngram;
 
-public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
+public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 
 	final String SPLIT_STRING = "\",\"";
 
-	private Text outputkey = new Text();
+	//private Text outputkey = new Text();
 	//private MapWritable outputValue = new MapWritable();
 	private Text outputValue = new Text();
 	
@@ -123,8 +124,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 						context.getCounter(BUFFER_READER_GROUP, BUFFER_READER_COUNTER).increment(1);
 
 						ws = line.split("\\t");
-						if(ws[1].getBytes() != null && ws[1].getBytes().length > 0 && filter.membershipTest(new Key(ws[1].getBytes()))){
-							//System.out.println("Progressing cache file ....");
+						if(ws[1].getBytes() != null && ws[1].getBytes().length > 0 && filter.membershipTest(new Key(ws[1].getBytes()))){							
 							tagMap = wordFrequencyInTag.get(ws[0]);
 							if (null == tagMap) {
 								tagMap = new HashMap<String, Float>();
@@ -132,9 +132,10 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 							if(Integer.valueOf(ws[2]) > 2){ //storing words if contains more than 2 times
 								tags.add(ws[1]);
 								tagMap.put(ws[0],Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
+								
 							}							
 
-							wordFrequencyInTag.put(ws[1], tagMap);							
+							wordFrequencyInTag.put(ws[1], tagMap);						
 						}						
 
 						// reporting the progress
@@ -251,7 +252,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 			titleStrBuff.append(Ngram.getBiGram(title));
 
 			title = titleStrBuff.toString().trim();
-			outputkey.set(lineId);
+			//outputkey.set(lineId);
 			// outputValue.set(title);
 
 			Map<String, Float> tagFrequency = null;
@@ -278,7 +279,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 						tag = entry.getKey();
 						wordFreqInTag = entry.getValue();
 						if (tag.equalsIgnoreCase(word)) {
-							localWt = 3.0f;
+							localWt = 4.0f;
 						}
 						
 						// calculate for tf-idf					
@@ -299,8 +300,8 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 				}
 			}
 			
-			outputValue.set(CollectionsExtn.getSortedTags(tagScoreMap, 3));
-			context.write(outputkey, outputValue);
+			outputValue.set(lineId+","+CollectionsExtn.getSortedTags(tagScoreMap, 3));
+			context.write(NullWritable.get(), outputValue);
 
 			/**
 			 * reading from database try { outputValue.set(new
