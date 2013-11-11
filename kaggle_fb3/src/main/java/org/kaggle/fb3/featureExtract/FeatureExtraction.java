@@ -33,9 +33,9 @@ public class FeatureExtraction extends Configured implements Tool{
 		textFeatureExtraction.setReducerClass(TFIDFFeatExtractReducer.class);
 		
 		textFeatureExtraction.setMapOutputKeyClass(Text.class);
-		textFeatureExtraction.setMapOutputValueClass(Text.class);
+		textFeatureExtraction.setMapOutputValueClass(TFIDFWritable.class);
 		textFeatureExtraction.setOutputKeyClass(Text.class);
-		textFeatureExtraction.setOutputValueClass(Text.class);
+		textFeatureExtraction.setOutputValueClass(TFIDFWritable.class);
 		
 		textFeatureExtraction.setInputFormatClass(TextInputFormat.class);
 		textFeatureExtraction.setOutputValueClass(TextInputFormat.class);

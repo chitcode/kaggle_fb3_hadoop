@@ -40,6 +40,8 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 	private Map<String, Map<String, Float>> wordFrequencyInTag = new HashMap<String, Map<String, Float>>();
 	private Map<String, Integer> wordInTagsMap = new HashMap<String, Integer>();
 	private Set<String> tags = new HashSet<String>();
+	
+	private Map<String,Float> tagWordProb = new HashMap<String,Float>();
 
 	private int progressCoounter = 0;
 
@@ -136,7 +138,11 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 							}							
 
 							wordFrequencyInTag.put(ws[1], tagMap);						
-						}						
+						}	
+						
+						if(!tagWordProb.containsKey(ws[1])){
+							tagWordProb.put(ws[1], Float.valueOf(ws[5])/Float.valueOf(ws[4]));
+						}
 
 						// reporting the progress
 						progressCoounter++;
@@ -243,24 +249,36 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 		if (splitSize >= 3) {
 
 			String title = columns[1];
-			title = title.toLowerCase();
-
+			
 			title = CleanData.clean(title);
+			
+			String body = null;
+			if(columns[2].length() >= 150)
+				body = columns[2].substring(0, 150);
+			else
+				body = columns[2];
+			
+			body = CleanData.clean(body);
+			String content = null;
 
-			StringBuffer titleStrBuff = new StringBuffer(title);
-			titleStrBuff.append(" ");
-			titleStrBuff.append(Ngram.getBiGram(title));
+			StringBuffer contentBuff = new StringBuffer(title);
+			contentBuff.append(" ");
+			contentBuff.append(body);
+			contentBuff.append(" ");
+			contentBuff.append(Ngram.getBiGram(title));
+			contentBuff.append(" ");
+			contentBuff.append(Ngram.getBiGram(body));
 
-			title = titleStrBuff.toString().trim();
+			content = contentBuff.toString().trim();
 			//outputkey.set(lineId);
 			// outputValue.set(title);
 
 			Map<String, Float> tagFrequency = null;
 			int tagsForWord = 0;
-			String[] words = title.split("\\s");
+			String[] words = content.split("\\s");
 			
 			//create a local map to hold all the tags and scores and radiate the top 3 scores from this map
-			Map<String,Float> tagScoreMap = new HashMap<String,Float>();
+			Map<String,Double> tagScoreMap = new HashMap<String,Double>();
 			
 			for (String word : words) {
 				tagFrequency = wordFrequencyInTag.get(word);
@@ -269,17 +287,17 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 				if(tagsCount != null)
 					tagsForWord = tagsCount;
 
-				Float tfIdf = 0.0f;
+				double tfIdf = 0;
 				if (null != tagFrequency) {
 					String tag = null;
 					Float wordFreqInTag = 0.0f;
-					Float localWt = 1.0f; //TODO : planning for better local weight
+					double localWt = 1; //TODO : planning for better local weight
 
 					for (Map.Entry<String, Float> entry : tagFrequency.entrySet()) {
 						tag = entry.getKey();
 						wordFreqInTag = entry.getValue();
-						if (tag.equalsIgnoreCase(word)) {
-							localWt = 4.0f;
+						if (tag.equalsIgnoreCase(word) && tagWordProb.containsKey(tag)) {
+							localWt = 1 + Math.pow(100,new Double(tagWordProb.get(tag)));
 						}
 						
 						// calculate for tf-idf					
@@ -304,7 +322,8 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 			context.write(NullWritable.get(), outputValue);
 
 			/**
-			 * reading from database try { outputValue.set(new
+			 * reading from database 
+			 * try { outputValue.set(new
 			 * Text(DBUtil.getPredictedTags(Integer.parseInt(lineId),title))); }
 			 * catch (Exception e) {
 			 * 

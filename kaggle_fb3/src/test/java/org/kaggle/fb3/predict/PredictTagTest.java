@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.junit.Before;
@@ -12,7 +13,7 @@ import org.junit.Test;
 
 public class PredictTagTest {
 	
-	private MapDriver<Object,Text,Text,Text> mapDriver;
+	private MapDriver<Object,Text,NullWritable,Text> mapDriver;
 	//private ReduceDriver<Text,MapWritable,Text,Text> reduceDriver;
 	
 
@@ -46,13 +47,13 @@ public class PredictTagTest {
 		String line = "NEW_LINE_CHHAR\"6034196\",\"Nodes inside Cisco VPN. Incoming SSH requests allowed. But can't initiate an outbound SSH application apple\",\"<p>How do I disable site-specific hotkeys\"";
 		mapDriver.withInput(new LongWritable(0),new Text(line));
 		
-		Text outkey = new Text("6034196");
+		//Text outkey = new Text("6034196");
 		
 		
 		Text outputValue = new Text();
 		outputValue.set("\".a\"");
 		//outputValue.put(new Text(".a"), new DoubleWritable(0.003));
-		mapDriver.withOutput(outkey,outputValue);
+		mapDriver.withOutput(NullWritable.get(),outputValue);
 		mapDriver.runTest();
 	}
 	

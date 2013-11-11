@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.kaggle.fb3.util.CleanData;
 import org.kaggle.fb3.util.Ngram;
@@ -16,15 +17,18 @@ import org.kaggle.fb3.util.Ngram;
  * Extracts features from the text file
  * 
  * <input> [id,title,body,tags]
- * <map-out> [tag - title]    # title is cleaned and bi-grammed
+ * <map-out> [tag - title+body,noOfTicket = 1, keyContains = 0/1 ]    # title is cleaned and bi-grammed
  *
  */
-public class TFIDFFeatExtractMapper extends Mapper<LongWritable, Text, Text, Text>{
+public class TFIDFFeatExtractMapper extends Mapper<LongWritable, Text, Text, TFIDFWritable>{
 	
 	String splitString = "\",\"";
 	
 	private Text outputkey = new Text();
-	private Text outputValue = new Text();
+	private TFIDFWritable outputValue = new TFIDFWritable();
+	final static VIntWritable zero = new VIntWritable(0);
+	final static VIntWritable one = new VIntWritable(1);
+	private Text contentValue = new Text();
 	
 	@Override
 	protected void map(LongWritable key,Text value, Context context)throws IOException,InterruptedException{
@@ -42,20 +46,37 @@ public class TFIDFFeatExtractMapper extends Mapper<LongWritable, Text, Text, Tex
 				
 				String title = columns[1];				
 				
-				title = CleanData.clean(title);
+				String body = null;
+				if(columns[2].length() >= 150)
+					body = columns[2].substring(0, 150);
+				else
+					body = columns[2];
 				
-				StringBuffer titleStrBuff = new StringBuffer(title);
-				titleStrBuff.append(" ");
-				titleStrBuff.append(Ngram.getBiGram(title));
+				title = CleanData.clean(title);	
+				body = CleanData.clean(body);
 				
-				String tags = columns[splitSize-1]; //should be 3 ideally but some of the data not good
+				
+				StringBuffer contentStringBuff = new StringBuffer(title);
+				contentStringBuff.append(" ");
+				contentStringBuff = contentStringBuff.append(body);
+				contentStringBuff.append(" ");
+				contentStringBuff.append(Ngram.getBiGram(title));
+				contentStringBuff.append(" ");
+				contentStringBuff.append(Ngram.getBiGram(body));
+				
+				String tags = columns[splitSize-1]; //ideally it should be 3 but few data are not clean so getting it from the last of the string
 				tags = tags.replaceAll("\"?$","");
 				
 				
 				
 				for(String tag:tags.split("\\s")){
 					outputkey.set(tag.trim());
-					outputValue.set(titleStrBuff.toString());
+					contentValue.set(contentStringBuff.toString().trim());
+					if(contentStringBuff.toString().contains(tag))
+						outputValue.set(contentValue,one,one);
+					else
+						outputValue.set(contentValue,one,zero);
+					//System.out.println(outputValue.toString());
 					context.write(outputkey, outputValue); //TODO: instead of passing the entire string, only word frequencies could be passed
 				}			
 				
@@ -63,7 +84,7 @@ public class TFIDFFeatExtractMapper extends Mapper<LongWritable, Text, Text, Tex
 				//TODO: put some counters to count the number of records having problem
 			}
 		}catch(Exception e){
-			//TODO: handle it properly
+			//System.out.println(e);
 		}
 	}	
 }

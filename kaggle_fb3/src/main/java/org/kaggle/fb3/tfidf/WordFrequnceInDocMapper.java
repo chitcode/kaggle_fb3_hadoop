@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.VIntWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 
 /**
@@ -17,8 +18,10 @@ public class WordFrequnceInDocMapper extends Mapper<Object,Text,WordTagWritable,
 	
 	
 	WordTagWritable wordTagKey = new WordTagWritable();
-	static final IntWritable one = new IntWritable(1);
-	IntWritable totalWords = new IntWritable(0);
+	static final VIntWritable one = new VIntWritable(1);
+	VIntWritable totalWords = new VIntWritable(0);
+	private VIntWritable noOfTicket = new VIntWritable(0);
+	private VIntWritable keyContains = new VIntWritable(0);
 	
 	WdCntWdsInDocCntWritable wdCntWdsInDocCntWritable = new WdCntWdsInDocCntWritable();
 	@Override 
@@ -26,6 +29,8 @@ public class WordFrequnceInDocMapper extends Mapper<Object,Text,WordTagWritable,
 		
 		String[] tagWords = value.toString().split("\t");
 		String tag = tagWords[0].trim();
+		noOfTicket.set(Integer.valueOf(tagWords[2].trim()));
+		keyContains.set(Integer.valueOf(tagWords[3].trim()));
 		
 		if(tag != null && !"".equals(tag)){
 			String[] words = tagWords[1].split("\\s");
@@ -37,7 +42,7 @@ public class WordFrequnceInDocMapper extends Mapper<Object,Text,WordTagWritable,
 				}
 				word = word.replaceAll("\"", "").trim();
 				wordTagKey.set(word,tag);
-				wdCntWdsInDocCntWritable.set(one,totalWords);
+				wdCntWdsInDocCntWritable.set(one,totalWords,noOfTicket,keyContains);
 				context.write(wordTagKey, wdCntWdsInDocCntWritable);		
 			}			
 		}

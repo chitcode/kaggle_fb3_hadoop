@@ -5,7 +5,7 @@ public class Ngram {
 	public static String getBiGram(String line){
 		
 		StringBuffer bigramLine = new StringBuffer();
-		String[] words = line.split("\\s+");
+		String[] words = line.trim().split("\\s+");
 		
 		
 		for(int i = 0; i < words.length-1; i++){

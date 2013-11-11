@@ -74,9 +74,10 @@ public class CleanData {
 		inString = inString.replaceAll("n\\'t", " not"); // 't
 		//inString = inString.replaceAll("\\!", "");
 		inString = inString.replaceAll("\"", " ");
-		inString = inString.replaceAll("\\'", ""); // 
-		inString = inString.replaceAll("\\.+", "."); // .'
-		inString = inString.replaceAll("^\\s\\.^\\s", " dothere ");
+		inString = inString.replaceAll("\\'", ""); //
+		inString = inString.replaceAll("\\.", ""); // .
+		//inString = inString.replaceAll("\\.+", "."); // .'
+		//inString = inString.replaceAll("^\\s\\.^\\s", " dothere ");
 		inString = inString.replaceAll("[0-9]+", " numberhere ");
 		
 		inString = inString.replaceAll("[\\!\\-\\+\\{\\}\\[\\]\\$\\#\\<\\>\\:\\_\\*\\=\\/\\\\]+", " spcharhere "); //replacing all special characters to " "

@@ -9,7 +9,7 @@ import java.util.Map;
 public class CollectionsExtn {
 
 	
-	public static String getSortedTags(Map<String,Float> map,int trimSize){
+	public static String getSortedTags(Map<String,Double> map,int trimSize){
 	List<Map.Entry> a = new ArrayList<Map.Entry>(map.entrySet());
 	Collections.sort(a, new Comparator() {
 	             public int compare(Object o1, Object o2) {
