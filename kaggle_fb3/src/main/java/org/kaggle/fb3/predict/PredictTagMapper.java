@@ -41,7 +41,7 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 	private Map<String, Integer> wordInTagsMap = new HashMap<String, Integer>();
 	private Set<String> tags = new HashSet<String>();
 	
-	private Map<String,Float> tagWordProb = new HashMap<String,Float>();
+	private Map<String,Double> tagWordProb = new HashMap<String,Double>();
 
 	private int progressCoounter = 0;
 
@@ -141,7 +141,7 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 						}	
 						
 						if(!tagWordProb.containsKey(ws[1])){
-							tagWordProb.put(ws[1], Float.valueOf(ws[5])/Float.valueOf(ws[4]));
+							tagWordProb.put(ws[1], Double.valueOf(ws[5])/Double.valueOf(ws[4]));
 						}
 
 						// reporting the progress
