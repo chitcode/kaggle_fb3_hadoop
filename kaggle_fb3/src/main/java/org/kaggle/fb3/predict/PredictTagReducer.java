@@ -9,19 +9,20 @@ import java.util.TreeMap;
 
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.MapWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.kaggle.fb3.dao.DBUtil;
 
-public class PredictTagReducer extends Reducer<Text,MapWritable,Text,Text>{	
+public class PredictTagReducer extends Reducer<Text,Text,NullWritable,Text>{	
 	
 	private Text outputkey = new Text();
 	private Text outputValue = new Text();
 	
 	
 	@Override
-	protected void reduce(Text key,Iterable<MapWritable> values, Context context)throws IOException,InterruptedException{
+	protected void reduce(Text key,Iterable<Text> values, Context context)throws IOException,InterruptedException{/*
 		
 		Map<Double,String> scoreTagMap = new TreeMap<Double,String>(Collections.reverseOrder());
 		
@@ -83,6 +84,12 @@ public class PredictTagReducer extends Reducer<Text,MapWritable,Text,Text>{
 			//System.out.println("Error updating databse");
 		}
 		
+	*/
+		for(Text tagsPredict : values){
+			context.write(NullWritable.get(), tagsPredict);
+		}
+		
+	
 	}
 	
 	

@@ -27,11 +27,16 @@ import org.kaggle.fb3.util.CleanData;
 import org.kaggle.fb3.util.CollectionsExtn;
 import org.kaggle.fb3.util.Ngram;
 
-public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
+/**
+ * 
+ * @author root
+ *
+ */
+public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 
 	final String SPLIT_STRING = "\",\"";
 
-	//private Text outputkey = new Text();
+	private Text outputkey = new Text();
 	//private MapWritable outputValue = new MapWritable();
 	private Text outputValue = new Text();
 	
@@ -108,7 +113,7 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 				System.out.println("file path --" + files[i]);
 
 				//incrementing the file counter
-				context.getCounter(BUFFER_READER_GROUP, BUFFER_FILE_COUNTER).increment(1);				
+				//context.getCounter(BUFFER_READER_GROUP, BUFFER_FILE_COUNTER).increment(1);				
 				 
 				String[] ws = null;
 				Map<String, Float> tagMap = null;
@@ -123,21 +128,25 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 					while ((line = buffReader.readLine()) != null) {
 
 						//incrementing the line counter
-						context.getCounter(BUFFER_READER_GROUP, BUFFER_READER_COUNTER).increment(1);
+						//context.getCounter(BUFFER_READER_GROUP, BUFFER_READER_COUNTER).increment(1);
 
 						ws = line.split("\\t");
 						if(ws[1].getBytes() != null && ws[1].getBytes().length > 0 && filter.membershipTest(new Key(ws[1].getBytes()))){							
-							tagMap = wordFrequencyInTag.get(ws[0]);
-							if (null == tagMap) {
-								tagMap = new HashMap<String, Float>();
-							}
-							if(Integer.valueOf(ws[2]) > 2){ //storing words if contains more than 2 times
-								tags.add(ws[1]);
+							
+							if(Integer.valueOf(ws[2]) > 4){ //storing words if contains more than 3 times
+								if(!ws[1].contains("-") && Integer.valueOf(ws[2]) < 7){
+									continue;
+								}
+								tagMap = wordFrequencyInTag.get(ws[1]);
+								if (null == tagMap) {
+									tagMap = new HashMap<String, Float>(); //holds map - tf
+								}
+								tags.add(ws[0]);
 								tagMap.put(ws[0],Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
-								
+								wordFrequencyInTag.put(ws[1], tagMap);	
 							}							
 
-							wordFrequencyInTag.put(ws[1], tagMap);						
+												
 						}	
 						
 						if(!tagWordProb.containsKey(ws[1])){
@@ -187,7 +196,7 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 				progressCoounter = 0;
 				String line = null;
 				while ((line = buffReader.readLine()) != null) {
-					context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
+					//context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
 					
 					w = line.split("\\t");
 					
@@ -291,19 +300,22 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 				if (null != tagFrequency) {
 					String tag = null;
 					Float wordFreqInTag = 0.0f;
-					double localWt = 1; //TODO : planning for better local weight
+					double localWt = 1;
 
+					String tagTrimed = null;
 					for (Map.Entry<String, Float> entry : tagFrequency.entrySet()) {
 						tag = entry.getKey();
 						wordFreqInTag = entry.getValue();
-						if (tag.equalsIgnoreCase(word) && tagWordProb.containsKey(tag)) {
-							localWt = 1 + Math.pow(100,new Double(tagWordProb.get(tag)));
+						tagTrimed = tag.replaceAll("[^a-z-]","");
+						
+						if (tagTrimed.equalsIgnoreCase(word) && tagWordProb.containsKey(tag)) {
+							localWt = Math.pow(10,new Double(tagWordProb.get(tag)));
 						}
 						
 						// calculate for tf-idf					
 						
 						tfIdf = wordFreqInTag
-								* (float)Math.log(new Double(tagsSize / (tagsForWord + 1)))
+								* Math.log(new Double(tagsSize / (tagsForWord + 1)))
 								* localWt;
 						
 						if(tagScoreMap.containsKey(tag)){
@@ -319,7 +331,8 @@ public class PredictTagMapper extends Mapper<Object, Text, NullWritable, Text> {
 			}
 			
 			outputValue.set(lineId+","+CollectionsExtn.getSortedTags(tagScoreMap, 3));
-			context.write(NullWritable.get(), outputValue);
+			outputkey.set(lineId);
+			context.write(outputkey, outputValue);
 
 			/**
 			 * reading from database 

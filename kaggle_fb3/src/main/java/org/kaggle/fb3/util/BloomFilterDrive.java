@@ -51,17 +51,30 @@ public class BloomFilterDrive {
 				
 				//splitting all the columns
 				String[] columns = line.split(SPLIT_STRING);
-				String title = columns[1];
-				title = title.toLowerCase();
+				String title = columns[1];				
 
 				title = CleanData.clean(title);
+				
+				String body = null;
+				if(columns[2].length() >= 150)
+					body = columns[2].substring(0, 150);
+				else
+					body = columns[2];
+				
+				body = CleanData.clean(body);
+				String content = null;
 
-				StringBuffer titleStrBuff = new StringBuffer(title);
-				titleStrBuff.append(" ");
-				titleStrBuff.append(Ngram.getBiGram(title));
+				StringBuffer contentBuff = new StringBuffer(title);
+				contentBuff.append(" ");
+				contentBuff.append(body);
+				contentBuff.append(" ");
+				contentBuff.append(Ngram.getBiGram(title));
+				contentBuff.append(" ");
+				contentBuff.append(Ngram.getBiGram(body));
 
-				title = titleStrBuff.toString().trim();
-				String[] words = title.split("\\s+");
+				content = contentBuff.toString().trim();				
+
+				String[] words = content.split("\\s+");
 				for(String word:words){
 					filter.add(new Key(word.getBytes()));
 					++numElements;

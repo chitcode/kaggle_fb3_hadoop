@@ -9,8 +9,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 /**
  * 
  * @author Chit
- * <Mapper-Input> [ word,tag - wordCount, totalWordsinTag]
- * <Reducer-Input> [ word,tag - wordCount, totalWordsinTag] # wordCount accumulated
+ * <Mapper-Input> [ tag-word , 1 - totalWordsInTag- noOfTicksts - NoOfTicketsContainsTag]
+ * <Reducer-Input> [ tag-word , sum(ones) - totalWordsInTag- noOfTicksts - NoOfTicketsContainsTag] # wordCount accumulated
  *
  */
 public class WordFrequnceInDocReducer extends Reducer<WordTagWritable, WdCntWdsInDocCntWritable, WordTagWritable, WdCntWdsInDocCntWritable>{

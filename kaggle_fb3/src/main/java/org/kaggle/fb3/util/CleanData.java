@@ -23,6 +23,38 @@ public class CleanData {
 		
 		inString = inString.replaceAll("\\,\\s", " "); //,
 		inString = inString.replaceAll("\\,", " "); //,
+		inString = inString.replaceAll("\\'s\\s", " "); // 's		
+		inString = inString.replaceAll("\\(", " "); // (
+		inString = inString.replaceAll("\\)", " "); // )
+		inString = inString.replaceAll("\\<", " "); // <
+		inString = inString.replaceAll("\\>", " "); // >
+		inString = inString.replaceAll("\\[", " "); // [
+		inString = inString.replaceAll("\\]", " "); // ]
+		inString = inString.replaceAll("\\{", " "); // {
+		inString = inString.replaceAll("\\}", " "); // }
+		inString = inString.replaceAll("\\?", " "); // ?
+		inString = inString.replaceAll("\\~", " "); // ~
+		inString = inString.replaceAll("n\\'t", " not"); // 't
+		inString = inString.replaceAll("\\snot\\s", " ");
+		//inString = inString.replaceAll("\\!", "");
+		inString = inString.replaceAll("\"", " ");
+		inString = inString.replaceAll("\\'", " "); //
+		inString = inString.replaceAll("\\.", " "); // .
+		inString = inString.replaceAll("\\%", " "); // %
+		inString = inString.replaceAll("\\&", " "); // &
+		inString = inString.replaceAll("\\;", " "); //;
+		
+		//inString = inString.replaceAll("\\.+", "."); // .'
+		//inString = inString.replaceAll("^\\s\\.^\\s", " dothere ");
+		inString = inString.replaceAll("\\s[0-9]+\\s", " 00 ");		
+		
+		inString = inString.replaceAll("[\\!\\^\\-\\|\\+\\{\\}\\[\\]\\$\\#\\<\\>\\:\\_\\*\\=\\/\\\\]+", " "); //replacing all special characters to " 1 "
+		inString = inString.replaceAll("\\s\\.\\s|\\.$", " "); //.		
+		
+		inString = inString.replaceAll("^lt\\s|\\slt\\s|\\slt$", " "); // lt
+		inString = inString.replaceAll("^gt\\s|\\sgt\\s|\\sgt$", " "); // gt
+		inString = inString.replaceAll("^amp\\s|\\samp\\s|\\samp$", " "); // lt
+		inString = inString.replaceAll("\\.", ""); // .
 		inString = inString.replaceAll("^how\\s|\\show\\s|\\show$", " "); //how
 		inString = inString.replaceAll("^why\\s|\\swhy\\s|\\swhy$", " "); //why
 		inString = inString.replaceAll("^to\\s|\\sto\\s|\\sto$", " "); //to
@@ -55,7 +87,7 @@ public class CleanData {
 		inString = inString.replaceAll("^of\\s|\\sof\\s|\\sof$", " "); //of
 		inString = inString.replaceAll("^and\\s|\\sand\\s|\\sand$", " "); //and
 		inString = inString.replaceAll("^or\\s|\\sor\\s|\\sor$", " "); //or
-		inString = inString.replaceAll("^about\\s|\\sabout\\s|\\sabout$", " "); //about   as,at,be,by,com, for,it,that,this,when,with
+		inString = inString.replaceAll("^about\\s|\\sabout\\s|\\sabout$", " "); //about 
 		inString = inString.replaceAll("^as\\s|\\sas\\s|\\sas$", " "); //as
 		inString = inString.replaceAll("^at\\s|\\sat\\s|\\sat$", " "); //at
 		inString = inString.replaceAll("^be\\s|\\sbe\\s|\\sbe$", " "); //be
@@ -67,26 +99,14 @@ public class CleanData {
 		inString = inString.replaceAll("^this\\s|\\sthis\\s|\\sthis$", " "); //this
 		inString = inString.replaceAll("^when\\s|\\swhen\\s|\\swhen$", " "); //when
 		inString = inString.replaceAll("^with\\s|\\swith\\s|\\swith$", " "); //with
-		inString = inString.replaceAll("\\'s\\s", ""); // 's		
-		inString = inString.replaceAll("\\(", ""); // (
-		inString = inString.replaceAll("\\)", ""); // )
-		inString = inString.replaceAll("\\?", ""); // ?
-		inString = inString.replaceAll("n\\'t", " not"); // 't
-		//inString = inString.replaceAll("\\!", "");
-		inString = inString.replaceAll("\"", " ");
-		inString = inString.replaceAll("\\'", ""); //
-		inString = inString.replaceAll("\\.", ""); // .
-		//inString = inString.replaceAll("\\.+", "."); // .'
-		//inString = inString.replaceAll("^\\s\\.^\\s", " dothere ");
-		inString = inString.replaceAll("[0-9]+", " numberhere ");
+		inString = inString.replaceAll("^my\\s|\\smy\\s", " "); //my
+		inString = inString.replaceAll("\\shave\\s", " "); //have
 		
-		inString = inString.replaceAll("[\\!\\-\\+\\{\\}\\[\\]\\$\\#\\<\\>\\:\\_\\*\\=\\/\\\\]+", " spcharhere "); //replacing all special characters to " "
-		inString = inString.replaceAll("\\s\\.\\s|\\.$", " "); //.
+		inString = inString.replaceAll("^[0-9]\\s|\\s[0-9]\\s|\\s[0-9]$", " "); //have 
 		
+		inString = inString.trim();
 		
-		
-		
-		inString = inString.replace("\\s+", " "); //removing all the cumulative spaces
+		inString = inString.replaceAll("\\s+", " "); //removing all the cumulative spaces
 		//inString = inString.replace("{spcharhere\\s}+", "spcharhere ");
 		//inString = inString.replace("{numberhere\\s}+ ", "numberhere ");
 		return inString;

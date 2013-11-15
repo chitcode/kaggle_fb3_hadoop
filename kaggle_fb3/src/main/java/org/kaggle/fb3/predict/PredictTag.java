@@ -22,7 +22,7 @@ public class PredictTag extends Configured implements Tool{
 		Configuration conf = super.getConf();
 		Job tagPredict = new Job(conf); 
 		
-		long milliseconds = 1000 * 60 * 60 ; //setting 1 hours
+		long milliseconds = 1000 * 60 * 60 * 2; //setting 2 hours
 		conf.setLong("mapred.healthChecker.script.timeout", milliseconds);
 		conf.setLong("mapred.task.timeout", milliseconds);	
 		
@@ -32,12 +32,12 @@ public class PredictTag extends Configured implements Tool{
 		
 		tagPredict.setJobName("Prediction for tags");
 		tagPredict.setJarByClass(getClass());
-		tagPredict.setNumReduceTasks(0);
+		tagPredict.setNumReduceTasks(1);
 		
 		//setting mapper, combiner, reducer
 		tagPredict.setMapperClass(PredictTagMapper.class);
 		//tagPredict.setCombinerClass(PredictTagReducer.class);
-		//tagPredict.setReducerClass(PredictTagReducer.class);
+		tagPredict.setReducerClass(PredictTagReducer.class);
 		
 		tagPredict.setMapOutputKeyClass(Text.class);
 		tagPredict.setMapOutputValueClass(MapWritable.class);

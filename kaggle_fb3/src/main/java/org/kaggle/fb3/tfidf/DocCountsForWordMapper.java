@@ -6,6 +6,12 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+/**
+ * 
+ * @author root
+ * <Mapper-input> [ tag-word - sum(ones) - totalWordsInTag- noOfTicksts - NoOfTicketsContainsTag]
+ * <Mapper-output> [ word - 1]
+ */
 public class DocCountsForWordMapper extends Mapper<Object,Text,Text,IntWritable>{
 	
 	private final IntWritable one = new IntWritable(1);

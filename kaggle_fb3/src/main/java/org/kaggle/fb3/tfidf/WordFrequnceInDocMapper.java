@@ -10,8 +10,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 /**
  * 
  * @author Chit
- * <Mapper-input> [tag - titles]
- * <Mapper-output> [ word,tag - wordCount, totalWordsinTag]
+ * <Mapper-input> [tag - tag+body - noOfTicket -  tagContains]
+ * <Mapper-output> [ word-tag, 1 - totalWordsInTag- noOfTicksts - NoOfTicketsContainsTag]
  *
  */
 public class WordFrequnceInDocMapper extends Mapper<Object,Text,WordTagWritable,WdCntWdsInDocCntWritable>{	

@@ -6,9 +6,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 
+ * @author Chit
+ * 
+ * 
+ *
+ */
 public class CollectionsExtn {
 
-	
+	/**
+	 * 
+	 * @param map
+	 * @param trimSize
+	 * @return String of top tags of length trimSize
+	 * 
+	 * Source : webcache.googleusercontent.com/search?q=cache:bXwIBh97VG4J:stackoverflow.com/questions/13852725/java-map-sort-by-value+&cd=1&hl=en&ct=clnk&gl=in&client=ubuntu
+	 */
 	public static String getSortedTags(Map<String,Double> map,int trimSize){
 	List<Map.Entry> a = new ArrayList<Map.Entry>(map.entrySet());
 	Collections.sort(a, new Comparator() {
@@ -20,6 +34,7 @@ public class CollectionsExtn {
 	         });
 	
 	StringBuffer tags = new StringBuffer("\"");
+	
 	int i = 0;
 	for (Map.Entry e : a) {
 	    if(i == trimSize)
@@ -28,7 +43,9 @@ public class CollectionsExtn {
 	    i++;
 	    tags.append(e.getKey());
 	    tags.append(" ");
+	   
 	}
+	
 	return tags.toString().trim() + "\"";
 }
 }

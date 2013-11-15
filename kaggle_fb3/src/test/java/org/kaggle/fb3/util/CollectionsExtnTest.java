@@ -21,7 +21,7 @@ public class CollectionsExtnTest {
 		tagMap.put("e", new Double(3.2));
 		tagMap.put("d", new Double(5.1));
 		
-		System.out.println(CollectionsExtn.getSortedTags(tagMap, 5));
+		System.out.println(CollectionsExtn.getSortedTags(tagMap, 3));
 	}
 
 }

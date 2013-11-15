@@ -68,11 +68,12 @@ public class TFIDFFeatExtractMapper extends Mapper<LongWritable, Text, Text, TFI
 				tags = tags.replaceAll("\"?$","");
 				
 				
-				
+				String tagTrimed = null;
 				for(String tag:tags.split("\\s")){
+					tagTrimed = tag.replaceAll("[^a-z-]","");
 					outputkey.set(tag.trim());
 					contentValue.set(contentStringBuff.toString().trim());
-					if(contentStringBuff.toString().contains(tag))
+					if(contentStringBuff.toString().contains(tagTrimed))
 						outputValue.set(contentValue,one,one);
 					else
 						outputValue.set(contentValue,one,zero);
