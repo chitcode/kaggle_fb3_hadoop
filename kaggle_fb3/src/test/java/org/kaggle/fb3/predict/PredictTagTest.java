@@ -47,26 +47,26 @@ public class PredictTagTest {
 		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train3-sample.txt");*/
 		
 		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_trainwords_bloom_filter");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00000");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00001");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00002");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00003");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00004");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00005");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00006");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00007");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00008");
-		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2/part-r-00009");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00000");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00001");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00002");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00003");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00004");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00005");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00006");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00007");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00008");
+		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train2_sample/part-r-00009");
 		mapDriver.addCacheFile("/root/hadoop-launcher/hdfs-launcher/kaggle_fb3_train3_sample.txt");
 		
-		String line = "NEW_LINE_CHHAR\"6034196\",\"Nodes inside Cisco VPN. Incoming build bunch category aspxauth doc app SSH requests allowed. But can't initiate an outbound SSH application apple\",\"<p>How do I disable site-specific hotkeys\"";
+		String line = "NEW_LINE_CHHAR\"6034196\",\"Nodes inside Cisco aspxauth doc app SSH outbound SSH application apple\",\"<p>How do I disable site-specific hotkeys\"";
 		mapDriver.withInput(new LongWritable(0),new Text(line));
 		
 		Text outkey = new Text("6034196");
 		
 		
 		Text outputValue = new Text();
-		outputValue.set("\".a\"");
+		outputValue.set("6034196,\".app .doc .ds-store\"");
 		//outputValue.put(new Text(".a"), new DoubleWritable(0.003));
 		mapDriver.withOutput(outkey,outputValue);
 		mapDriver.runTest();

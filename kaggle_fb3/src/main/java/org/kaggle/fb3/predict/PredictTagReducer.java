@@ -1,24 +1,15 @@
 package org.kaggle.fb3.predict;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
-import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.kaggle.fb3.dao.DBUtil;
 
 public class PredictTagReducer extends Reducer<Text,Text,NullWritable,Text>{	
 	
-	private Text outputkey = new Text();
-	private Text outputValue = new Text();
+	//private Text outputkey = new Text();
+	//private Text outputValue = new Text();
 	
 	
 	@Override

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,9 +15,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.FloatWritable;
-import org.apache.hadoop.io.MapWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.bloom.BloomFilter;
@@ -42,10 +38,13 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 	
 	
 	//wordFrequencyInTag format <word,<tag,tf>>
-	private Map<String, Map<String, Float>> wordFrequencyInTag = new HashMap<String, Map<String, Float>>();
-	private Map<String, Integer> wordInTagsMap = new HashMap<String, Integer>();
-	private Set<String> tags = new HashSet<String>();
+	private Map<String, Map<String, Double>> wordFrequencyInTag = new HashMap<String, Map<String, Double>>();
 	
+	//wordInTagsMap format <word,idf>
+	private Map<String, Integer> wordInTagsMap = new HashMap<String, Integer>();
+	//private Set<String> tags = new HashSet<String>();
+	
+	//tagWordProb format <tag, probability>
 	private Map<String,Double> tagWordProb = new HashMap<String,Double>();
 
 	private int progressCoounter = 0;
@@ -55,7 +54,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 	public static final String BUFFER_READER_COUNTER = "BUFFER_READER_COUNTER";
 	
 	private BloomFilter filter = new BloomFilter();
-	private int tagsSize = 0;
+	//private int tagsSize = 0;
 	
 	//private boolean loggingEnable = true;
 
@@ -116,7 +115,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 				//context.getCounter(BUFFER_READER_GROUP, BUFFER_FILE_COUNTER).increment(1);				
 				 
 				String[] ws = null;
-				Map<String, Float> tagMap = null;
+				Map<String, Double> tagMap = null;
 				BufferedReader buffReader = null;
 				try {
 					fs = FileSystem.get(files[i], conf);
@@ -133,24 +132,20 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 						ws = line.split("\\t");
 						if(ws[1].getBytes() != null && ws[1].getBytes().length > 0 && filter.membershipTest(new Key(ws[1].getBytes()))){							
 							
-							if(Integer.valueOf(ws[2]) > 4){ //storing words if contains more than 3 times
-								if(!ws[1].contains("-") && Integer.valueOf(ws[2]) < 7){
+							if(ws[1].contains("0-")|(ws[1].contains("-") && Integer.valueOf(ws[2]) < 4) | Integer.valueOf(ws[2]) < 7){
 									continue;
 								}
 								tagMap = wordFrequencyInTag.get(ws[1]);
 								if (null == tagMap) {
-									tagMap = new HashMap<String, Float>(); //holds map - tf
+									tagMap = new HashMap<String, Double>(); //holds map - tf
 								}
-								tags.add(ws[0]);
-								tagMap.put(ws[0],Float.valueOf(ws[2]) / Float.valueOf(ws[3]));
-								wordFrequencyInTag.put(ws[1], tagMap);	
-							}							
-
-												
+								//tags.add(ws[0]);
+								tagMap.put(ws[0],Double.valueOf(ws[2]) / Double.valueOf(ws[3]));
+								wordFrequencyInTag.put(ws[1], tagMap);													
 						}	
 						
-						if(!tagWordProb.containsKey(ws[1])){
-							tagWordProb.put(ws[1], Double.valueOf(ws[5])/Double.valueOf(ws[4]));
+						if(!tagWordProb.containsKey(ws[0])){
+							tagWordProb.put(ws[0], Double.valueOf(ws[5])/Double.valueOf(ws[4]));
 						}
 
 						// reporting the progress
@@ -200,7 +195,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 					
 					w = line.split("\\t");
 					
-					if(filter.membershipTest(new Key(w[0].trim().getBytes()))){
+					if(filter.membershipTest(new Key(w[0].trim().getBytes())) && wordFrequencyInTag.containsKey(w[0])){
 						//System.out.print(w[0]+"  ----   "+w[1]);
 						try{
 							wordInTagsMap.put(w[0], Integer.valueOf((w[1].trim())));
@@ -239,8 +234,8 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 			throw new IOException(e);
 		}
 		
-		tagsSize = tags.size();
-		tags = null;
+		//tagsSize = tags.size();
+		//tags = null;
 	}
 
 	@Override
@@ -282,7 +277,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 			//outputkey.set(lineId);
 			// outputValue.set(title);
 
-			Map<String, Float> tagFrequency = null;
+			Map<String, Double> tagFrequency = null;
 			int tagsForWord = 0;
 			String[] words = content.split("\\s");
 			
@@ -299,11 +294,11 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 				double tfIdf = 0;
 				if (null != tagFrequency) {
 					String tag = null;
-					Float wordFreqInTag = 0.0f;
+					double wordFreqInTag = 0;
 					double localWt = 1;
 
 					String tagTrimed = null;
-					for (Map.Entry<String, Float> entry : tagFrequency.entrySet()) {
+					for (Map.Entry<String, Double> entry : tagFrequency.entrySet()) {
 						tag = entry.getKey();
 						wordFreqInTag = entry.getValue();
 						tagTrimed = tag.replaceAll("[^a-z-]","");
@@ -314,8 +309,8 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 						
 						// calculate for tf-idf					
 						
-						tfIdf = wordFreqInTag
-								* Math.log(new Double(tagsSize / (tagsForWord + 1)))
+						tfIdf = (wordFreqInTag / new Double(tagsForWord))
+								//* Math.log(new Double(10000 / (tagsForWord + 1)))
 								* localWt;
 						
 						if(tagScoreMap.containsKey(tag)){
