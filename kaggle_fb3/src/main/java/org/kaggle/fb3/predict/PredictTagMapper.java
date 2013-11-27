@@ -15,6 +15,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.bloom.BloomFilter;
@@ -28,11 +29,11 @@ import org.kaggle.fb3.util.Ngram;
  * @author root
  *
  */
-public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
+public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 
 	final String SPLIT_STRING = "\",\"";
 
-	private Text outputkey = new Text();
+	private LongWritable outputkey = new LongWritable();
 	//private MapWritable outputValue = new MapWritable();
 	private Text outputValue = new Text();
 	
@@ -295,7 +296,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 				if (null != tagFrequency) {
 					String tag = null;
 					double wordFreqInTag = 0;
-					double localWt = 1;
+					
 
 					String tagTrimed = null;
 					for (Map.Entry<String, Double> entry : tagFrequency.entrySet()) {
@@ -303,14 +304,15 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 						wordFreqInTag = entry.getValue();
 						tagTrimed = tag.replaceAll("[^a-z-]","");
 						
-						if (tagTrimed.equalsIgnoreCase(word) && tagWordProb.containsKey(tag)) {
-							localWt = Math.pow(10,new Double(tagWordProb.get(tag)));
+						double localWt = 1;
+						if (tagTrimed.equals(word) && tagWordProb.containsKey(tag)) {
+							localWt = Math.pow(400,new Double(tagWordProb.get(tag)));
 						}
 						
 						// calculate for tf-idf					
-						
-						tfIdf = (wordFreqInTag / new Double(tagsForWord))
-								//* Math.log(new Double(10000 / (tagsForWord + 1)))
+						int max_doc_count = Math.max(5000, tagsForWord);
+						tfIdf = wordFreqInTag
+								* Math.log(new Double((max_doc_count+1) / (tagsForWord + 1)))
 								* localWt;
 						
 						if(tagScoreMap.containsKey(tag)){
@@ -326,7 +328,7 @@ public class PredictTagMapper extends Mapper<Object, Text, Text, Text> {
 			}
 			
 			outputValue.set(lineId+","+CollectionsExtn.getSortedTags(tagScoreMap, 3));
-			outputkey.set(lineId);
+			outputkey.set(Long.parseLong(lineId));
 			context.write(outputkey, outputValue);
 
 			/**

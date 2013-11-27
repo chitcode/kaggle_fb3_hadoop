@@ -2,10 +2,7 @@ package org.kaggle.fb3.predict;
 
 import java.io.IOException;
 
-import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.MapWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.junit.Before;
@@ -13,7 +10,7 @@ import org.junit.Test;
 
 public class PredictTagTest {
 	
-	private MapDriver<Object,Text,Text,Text> mapDriver;
+	private MapDriver<Object,Text,LongWritable,Text> mapDriver;
 	//private ReduceDriver<Text,MapWritable,Text,Text> reduceDriver;
 	
 
@@ -62,7 +59,7 @@ public class PredictTagTest {
 		String line = "NEW_LINE_CHHAR\"6034196\",\"Nodes inside Cisco aspxauth doc app SSH outbound SSH application apple\",\"<p>How do I disable site-specific hotkeys\"";
 		mapDriver.withInput(new LongWritable(0),new Text(line));
 		
-		Text outkey = new Text("6034196");
+		LongWritable outkey = new LongWritable(6034196);
 		
 		
 		Text outputValue = new Text();

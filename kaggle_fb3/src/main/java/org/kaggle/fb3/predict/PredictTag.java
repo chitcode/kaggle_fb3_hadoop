@@ -3,6 +3,7 @@ package org.kaggle.fb3.predict;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -39,7 +40,7 @@ public class PredictTag extends Configured implements Tool{
 		//tagPredict.setCombinerClass(PredictTagReducer.class);
 		tagPredict.setReducerClass(PredictTagReducer.class);
 		
-		tagPredict.setMapOutputKeyClass(Text.class);
+		tagPredict.setMapOutputKeyClass(LongWritable.class);
 		tagPredict.setMapOutputValueClass(Text.class);
 		tagPredict.setOutputKeyClass(NullWritable.class);
 		tagPredict.setOutputValueClass(Text.class);

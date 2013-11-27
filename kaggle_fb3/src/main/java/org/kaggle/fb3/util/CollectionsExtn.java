@@ -36,6 +36,8 @@ public class CollectionsExtn {
 	StringBuffer tags = new StringBuffer("\"");
 	
 	int i = 0;
+	
+	
 	for (Map.Entry e : a) {
 	    if(i == trimSize)
 	    	break;
@@ -46,6 +48,23 @@ public class CollectionsExtn {
 	   
 	}
 	
+	//taag_scores
+	/*
+	StringBuffer tagScoress = new StringBuffer("\"");
+	i = 0;
+	for (Map.Entry e : a) {
+	    if(i == 10)
+	    	break;
+	    
+	    i++;
+	    tagScoress.append(e.getKey());
+	    tagScoress.append("--");
+	    tagScoress.append(e.getValue());
+	    tagScoress.append(" ");
+	   
+	}*/
+	
+	//return tags.toString().trim() + "\""+"   "+tagScoress.toString().trim();
 	return tags.toString().trim() + "\"";
 }
 }

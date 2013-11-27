@@ -2,18 +2,19 @@ package org.kaggle.fb3.predict;
 
 import java.io.IOException;
 
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class PredictTagReducer extends Reducer<Text,Text,NullWritable,Text>{	
+public class PredictTagReducer extends Reducer<LongWritable,Text,NullWritable,Text>{	
 	
 	//private Text outputkey = new Text();
 	//private Text outputValue = new Text();
 	
 	
 	@Override
-	protected void reduce(Text key,Iterable<Text> values, Context context)throws IOException,InterruptedException{/*
+	protected void reduce(LongWritable key,Iterable<Text> values, Context context)throws IOException,InterruptedException{/*
 		
 		Map<Double,String> scoreTagMap = new TreeMap<Double,String>(Collections.reverseOrder());
 		

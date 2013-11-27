@@ -8,8 +8,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 /**
  * 
  * @author Chit
- * <Reducer-in> [tag - tag+body - noOfTicket = 1 -  tagContains = 0/1]    # content is cleaned and bi-grammed
- * <Reducer-out> [tag - tag+body - noOfTicket -  tagContains] # all the content,noOfTicket,keyContains  combined
+ * <Reducer-in> [tag - title+body - noOfTicket = 1 -  tagContains = 0/1]    # content is cleaned and bi-grammed
+ * <Reducer-out> [tag - title+body - noOfTicket -  tagContains] # all the content,noOfTicket,keyContains  combined
  *
  */
 public class TFIDFFeatExtractReducer extends Reducer<Text, TFIDFWritable, Text, TFIDFWritable>{	

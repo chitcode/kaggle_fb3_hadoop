@@ -17,5 +17,22 @@ public class Ngram {
 		
 		return bigramLine.toString().replace("\\s?$", "");
 	}
+	
+	public static String getFullTitle(String title){
+		title = title.toLowerCase();
+		StringBuffer fullTitle = new StringBuffer();
+		String[] words = title.trim().split("\\s+");
+				
+		for(String word:words){
+			fullTitle.append("-");
+			fullTitle.append(word);			
+		}
+		fullTitle.replace(0, 1, "");
+		return fullTitle.toString();
+	}
+	
+	public static void main(String[] args){
+		System.out.println(Ngram.getFullTitle("lt;= -\\w)(?:(?=\""));
+	}
 
 }
