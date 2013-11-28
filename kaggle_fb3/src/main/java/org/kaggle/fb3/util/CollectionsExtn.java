@@ -49,7 +49,7 @@ public class CollectionsExtn {
 	}
 	
 	//taag_scores
-	/*
+	
 	StringBuffer tagScoress = new StringBuffer("\"");
 	i = 0;
 	for (Map.Entry e : a) {
@@ -62,9 +62,9 @@ public class CollectionsExtn {
 	    tagScoress.append(e.getValue());
 	    tagScoress.append(" ");
 	   
-	}*/
+	}
 	
-	//return tags.toString().trim() + "\""+"   "+tagScoress.toString().trim();
-	return tags.toString().trim() + "\"";
+	return tags.toString().trim() + "\""+"   "+tagScoress.toString().trim();
+	//return tags.toString().trim() + "\"";
 }
 }

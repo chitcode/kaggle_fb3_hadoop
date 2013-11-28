@@ -47,6 +47,14 @@ public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 	
 	//tagWordProb format <tag, probability>
 	private Map<String,Double> tagWordProb = new HashMap<String,Double>();
+	
+	//holds the lineId and tags of duplicate records
+	private Map<String,String> duplicatIds = new HashMap<String,String>();
+	
+	//holds the trimmed tags as key and the total counts of this tag as value
+	private Map<String,Integer> trimedTagMap = new HashMap<String,Integer>();
+	
+	
 
 	private int progressCoounter = 0;
 
@@ -147,15 +155,17 @@ public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 						
 						if(!tagWordProb.containsKey(ws[0])){
 							tagWordProb.put(ws[0], Double.valueOf(ws[5])/Double.valueOf(ws[4]));
+							//tagWordProb.put(ws[0], Double.valueOf(ws[5]));
 						}
 
 						// reporting the progress
+						/*
 						progressCoounter++;
-
+						
 						if (progressCoounter % 1000000 == 0) {
 							context.progress();
 							System.out.println("Progressed Recoeds :" + progressCoounter);
-						}
+						}*/
 					}
 				} catch (Exception e) {
 					System.out.println(e.getStackTrace());
@@ -206,11 +216,6 @@ public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 					}
 							
 					progressCoounter++;
-
-					if (progressCoounter % 100000 == 0) {
-						context.progress(); // reporting the progress
-						System.out.println("Progressing ....");
-					}
 				}
 				}catch(Exception e){
 					System.out.println(e.getStackTrace());
@@ -229,14 +234,101 @@ public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 					if(fs != null){
 						//fs.close();
 					}
-					System.out.println("PROCESSED ALL THE CHACHED FILES");
+					System.out.println("Processed the 2nd File");
+				}
+				
+				
+				//loading the duplicate records to a map
+				try {
+					fs = FileSystem.get(files[12], conf);
+					in = fs.open(new Path(files[12]));					
+					reader = new InputStreamReader(in);
+					buffReader = new BufferedReader(reader);
+					
+
+				String[] dupPred = null;				
+				System.out.println("Reading the duplicate records file from "+ files[12]);
+				progressCoounter = 0;
+				String line = null;
+				while ((line = buffReader.readLine()) != null) {
+					//context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
+					
+					dupPred = line.split(",");
+					
+					duplicatIds.put(dupPred[0], dupPred[1]);
+							
+					progressCoounter++;				
+				}
+				}catch(Exception e){
+					System.out.println(e.getStackTrace());
+					throw new IOException(e);
+					
+				}finally{
+					if(in != null){
+						in.close();
+					}
+					if(reader  != null){
+						reader.close();
+					}
+					if(null != buffReader){
+						buffReader.close();
+					}
+					if(fs != null){
+						//fs.close();
+					}
+					System.out.println("PROCESSED THE DUPLICATE RECORDS FILE");
+				}
+				
+				//loading the trimed tags count 
+				try {
+					fs = FileSystem.get(files[13], conf);
+					in = fs.open(new Path(files[13]));					
+					reader = new InputStreamReader(in);
+					buffReader = new BufferedReader(reader);
+					
+
+				String[] trimedTag = null;				
+				System.out.println("Reading the trimmed tag file from "+ files[13]);
+				progressCoounter = 0;
+				String line = null;
+				while ((line = buffReader.readLine()) != null) {
+					//context.getCounter(BUFFER_READER_GROUP,BUFFER_READER_COUNTER).increment(1);
+					trimedTag = line.split("\\t");
+					trimedTagMap.put(trimedTag[0].trim(), Integer.valueOf(trimedTag[1].trim()));
+					
+					
+					/*		
+					progressCoounter++;
+
+					if (progressCoounter % 100000 == 0) {
+						context.progress(); // reporting the progress
+						System.out.println("Progressing ....");
+					}*/
+				}
+				}catch(Exception e){
+					System.out.println(e.getStackTrace());
+					throw new IOException(e);
+					
+				}finally{
+					if(in != null){
+						in.close();
+					}
+					if(reader  != null){
+						reader.close();
+					}
+					if(null != buffReader){
+						buffReader.close();
+					}
+					if(fs != null){
+						//fs.close();
+					}
+					System.out.println("Processed all the trimmed tags");
 				}
 		} catch (Exception e) {
 			throw new IOException(e);
 		}
 		
-		//tagsSize = tags.size();
-		//tags = null;
+		System.out.println("PROCESSED ALL THE FILES FROM CACHE");
 	}
 
 	@Override
@@ -250,8 +342,12 @@ public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 		
 		String lineId = columns[0];
 		lineId = lineId.replaceAll("^NEW_LINE_CHHAR\"", "").trim();
-
-		if (splitSize >= 3) {
+		
+		if(duplicatIds.containsKey(lineId)){
+			outputValue.set(lineId+","+duplicatIds.get(lineId));
+			outputkey.set(Long.parseLong(lineId));
+			context.write(outputkey, outputValue);
+		}else if (splitSize >= 3) {
 
 			String title = columns[1];
 			
@@ -305,12 +401,13 @@ public class PredictTagMapper extends Mapper<Object, Text, LongWritable, Text> {
 						tagTrimed = tag.replaceAll("[^a-z-]","");
 						
 						double localWt = 1;
-						if (tagTrimed.equals(word) && tagWordProb.containsKey(tag)) {
-							localWt = Math.pow(400,new Double(tagWordProb.get(tag)));
+						if (tagTrimed.equals(word) && tagWordProb.containsKey(tag) && trimedTagMap.containsKey(tagTrimed)) {
+							//localWt = Math.pow(50,new Double(tagWordProb.get(tag))) + Math.pow((1+Math.log((1000 + trimedTagMap.get(tagTrimed)/1000))),3);
+							localWt = Math.pow((1+Math.log((1000 + trimedTagMap.get(tagTrimed)/1000))),3);
 						}
 						
 						// calculate for tf-idf					
-						int max_doc_count = Math.max(5000, tagsForWord);
+						int max_doc_count = Math.max(10000, tagsForWord);
 						tfIdf = wordFreqInTag
 								* Math.log(new Double((max_doc_count+1) / (tagsForWord + 1)))
 								* localWt;

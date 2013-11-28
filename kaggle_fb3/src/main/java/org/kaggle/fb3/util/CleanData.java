@@ -48,7 +48,7 @@ public class CleanData {
 		//inString = inString.replaceAll("^\\s\\.^\\s", " dothere ");
 		inString = inString.replaceAll("\\s[0-9]+\\s", " 00 ");		
 		
-		inString = inString.replaceAll("[\\!\\^\\-\\|\\+\\{\\}\\[\\]\\$\\#\\<\\>\\:\\_\\*\\=\\/\\\\]+", " "); //replacing all special characters to " 1 "
+		inString = inString.replaceAll("[\\!\\^\\-\\|\\+\\{\\}\\[\\]\\$\\<\\>\\:\\_\\*\\=\\/\\\\]+", " "); //replacing all special characters to " 1 "
 		inString = inString.replaceAll("\\s\\.\\s|\\.$", " "); //.		
 		
 		inString = inString.replaceAll("^lt\\s|\\slt\\s|\\slt$", " "); // lt
